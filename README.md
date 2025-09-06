@@ -110,6 +110,7 @@ PORT=5000</pre>
     <footer style="margin-top:18px">
       <div>Repository: <a href="https://github.com/your-username/forever-full-stack-main" target="_blank">forever-full-stack-main</a></div>
       <div class="muted">Made with MERN • ©</div>
+      <div class="muted">Pranshu Shukla</div>
     </footer>
   </div>
 </body>
