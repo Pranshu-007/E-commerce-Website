@@ -1,13 +1,18 @@
 import React, { useContext, useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { ShopContext } from '../context/ShopContext'
 import Title from '../components/Title';
 import axios from 'axios';
 import { toast } from 'react-toastify'
 import { apiErrorMessage } from '../utils/apiError'
+import { celebratePayment } from '../utils/confetti'
 
 const Orders = () => {
   const { backendUrl, token, currency } = useContext(ShopContext);
+  const location = useLocation()
+  const navigate = useNavigate()
   const [orders, setOrders] = useState([])
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const loadOrderData = async () => {
     try {
@@ -50,11 +55,30 @@ const Orders = () => {
     loadOrderData()
   }, [token])
 
+  useEffect(() => {
+    if (!location.state?.paymentSuccess) return
+
+    celebratePayment()
+    setShowSuccess(true)
+    toast.success('Payment successful! Thank you for your order.')
+    navigate(location.pathname, { replace: true, state: {} })
+
+    const timer = setTimeout(() => setShowSuccess(false), 5000)
+    return () => clearTimeout(timer)
+  }, [location.state, location.pathname, navigate])
+
   return (
     <div className='border-t pt-16'>
         <div className='text-2xl'>
             <Title text1={'MY'} text2={'ORDERS'}/>
         </div>
+
+        {showSuccess && (
+          <div className='mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-center'>
+            <p className='font-display text-xl text-emerald-900'>Order placed successfully</p>
+            <p className='mt-1 text-sm text-emerald-700'>Thank you for shopping with us.</p>
+          </div>
+        )}
         <div>
             {orders.map((order) => (
               <div key={order._id} className='py-4 border-t border-b text-gray-700'>

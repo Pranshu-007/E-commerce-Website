@@ -13,11 +13,30 @@ const WEAK_ADMIN_PASSWORDS = new Set([
   'use_a_long_unique_password',
 ]);
 
+function normalizeOrigin(origin) {
+  return String(origin || '').trim().replace(/\/$/, '');
+}
+
 export function getAllowedOrigins() {
   return (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:5174')
     .split(',')
-    .map((origin) => origin.trim())
+    .map(normalizeOrigin)
     .filter(Boolean);
+}
+
+const VERCEL_APP_ORIGIN = /^https:\/\/[a-z0-9-]+(?:-[a-z0-9]+)*\.vercel\.app$/i;
+
+export function isOriginAllowed(origin, allowedOrigins = getAllowedOrigins()) {
+  if (!origin) return true;
+
+  const normalized = normalizeOrigin(origin);
+  if (allowedOrigins.includes(normalized)) return true;
+
+  if (process.env.CORS_ALLOW_VERCEL === 'true' && VERCEL_APP_ORIGIN.test(normalized)) {
+    return true;
+  }
+
+  return false;
 }
 
 export function assertEnv() {

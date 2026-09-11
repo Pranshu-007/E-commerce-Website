@@ -13,6 +13,7 @@ export const globalLimiter = rateLimit({
   statusCode: 429,
   message: { success: false, message: 'Too many requests. Please try again later.' },
   skip: (req) => {
+    if (req.method === 'OPTIONS') return true;
     const path = req.path || '';
     return (
       path === '/live' ||

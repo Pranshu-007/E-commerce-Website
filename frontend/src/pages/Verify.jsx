@@ -32,7 +32,7 @@ const Verify = () => {
 
             if (response.data.success && response.data.paid) {
                 setCartItems({})
-                navigate('/orders')
+                navigate('/orders', { state: { paymentSuccess: true } })
             } else {
                 toast.error(response.data.message || 'Payment not completed')
                 navigate('/cart')
