@@ -1,38 +1,46 @@
-import React from 'react'
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { ShopContext } from '../context/ShopContext'
 import { useSearchParams } from 'react-router-dom'
-import { useEffect } from 'react'
-import {toast} from 'react-toastify'
+import { toast } from 'react-toastify'
 import axios from 'axios'
+import { apiErrorMessage } from '../utils/apiError'
 
 const Verify = () => {
-
     const { navigate, token, setCartItems, backendUrl } = useContext(ShopContext)
-    const [searchParams, setSearchParams] = useSearchParams()
-    
-    const success = searchParams.get('success')
+    const [searchParams] = useSearchParams()
+
+    const sessionId = searchParams.get('session_id')
     const orderId = searchParams.get('orderId')
+    const cancelled = searchParams.get('cancelled')
 
     const verifyPayment = async () => {
         try {
-
-            if (!token) {
-                return null
+            if (cancelled === 'true') {
+                navigate('/cart')
+                return
             }
 
-            const response = await axios.post(backendUrl + '/api/order/verifyStripe', { success, orderId }, { headers: { token } })
+            if (!token || !sessionId || !orderId) {
+                return
+            }
 
-            if (response.data.success) {
+            const response = await axios.post(
+                backendUrl + '/api/order/verifyStripe',
+                { sessionId, orderId },
+                { headers: { token } }
+            )
+
+            if (response.data.success && response.data.paid) {
                 setCartItems({})
                 navigate('/orders')
             } else {
+                toast.error(response.data.message || 'Payment not completed')
                 navigate('/cart')
             }
-
         } catch (error) {
             console.log(error)
-            toast.error(error.message)
+            toast.error(apiErrorMessage(error))
+            navigate('/cart')
         }
     }
 
@@ -41,8 +49,8 @@ const Verify = () => {
     }, [token])
 
     return (
-        <div>
-
+        <div className='py-20 text-center text-gray-500 text-sm'>
+            Confirming payment...
         </div>
     )
 }

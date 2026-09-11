@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import os from 'os';
 import { getRedis } from '../config/redis.js';
 import { getSnapshot, toPrometheus } from '../services/metrics.js';
+import opsAuth from '../middleware/opsAuth.js';
 
 const healthRouter = express.Router();
 const startTime = Date.now();
@@ -61,7 +62,7 @@ healthRouter.get('/ready', async (_req, res) => {
   });
 });
 
-healthRouter.get('/status', async (_req, res) => {
+healthRouter.get('/status', opsAuth, async (_req, res) => {
   const [database, redis] = await Promise.all([checkDatabase(), checkRedis()]);
   const metrics = getSnapshot();
 
@@ -78,7 +79,7 @@ healthRouter.get('/status', async (_req, res) => {
   });
 });
 
-healthRouter.get('/metrics', (_req, res) => {
+healthRouter.get('/metrics', opsAuth, (_req, res) => {
   const format = _req.query.format || 'prometheus';
 
   if (format === 'json') {

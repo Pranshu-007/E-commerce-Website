@@ -1,84 +1,133 @@
-import React, { useContext, useState } from 'react'
-import {assets} from '../assets/assets'
+import { useContext, useState } from 'react'
+import { assets } from '../assets/assets'
 import { Link, NavLink } from 'react-router-dom'
-import { ShopContext } from '../context/ShopContext';
+import { ShopContext } from '../context/ShopContext'
+import WishlistIcon from './WishlistIcon'
+import AnimatedIcon from './AnimatedIcon'
+import MobileMenu from './MobileMenu'
+
+const navItems = [
+  { to: '/', label: 'Home' },
+  { to: '/collection', label: 'Shop' },
+  { to: '/about', label: 'About' },
+  { to: '/contact', label: 'Contact' },
+]
+
+const mobileLinks = [
+  ...navItems,
+  { to: '/wishlist', label: 'Wishlist' },
+]
 
 const Navbar = () => {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const { setShowSearch, getCartCount, navigate, token, setToken, setCartItems, wishlist } = useContext(ShopContext)
 
-    const [visible,setVisible] = useState(false);
-
-    const {setShowSearch , getCartCount , navigate, token, setToken, setCartItems} = useContext(ShopContext);
-
-    const logout = () => {
-        navigate('/login')
-        localStorage.removeItem('token')
-        setToken('')
-        setCartItems({})
-    }
+  const logout = () => {
+    navigate('/login')
+    localStorage.removeItem('token')
+    setToken('')
+    setCartItems({})
+  }
 
   return (
-    <div className='flex items-center justify-between py-5 font-medium'>
-      
-      <Link to='/'><img src={assets.logo} className='w-36' alt="" /></Link>
+    <>
+      <div className="relative flex items-center justify-between py-4 sm:py-5">
+        <Link to="/" className="shrink-0">
+          <img src={assets.logo} className="h-8 w-auto sm:h-9" alt="Forever" />
+        </Link>
 
-      <ul className='hidden sm:flex gap-5 text-sm text-gray-700'>
-        
-        <NavLink to='/' className='flex flex-col items-center gap-1'>
-            <p>HOME</p>
-            <hr className='w-2/4 border-none h-[1.5px] bg-gray-700 hidden' />
-        </NavLink>
-        <NavLink to='/collection' className='flex flex-col items-center gap-1'>
-            <p>COLLECTION</p>
-            <hr className='w-2/4 border-none h-[1.5px] bg-gray-700 hidden' />
-        </NavLink>
-        <NavLink to='/about' className='flex flex-col items-center gap-1'>
-            <p>ABOUT</p>
-            <hr className='w-2/4 border-none h-[1.5px] bg-gray-700 hidden' />
-        </NavLink>
-        <NavLink to='/contact' className='flex flex-col items-center gap-1'>
-            <p>CONTACT</p>
-            <hr className='w-2/4 border-none h-[1.5px] bg-gray-700 hidden' />
-        </NavLink>
+        <nav className="hidden sm:flex items-center gap-8">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
 
-      </ul>
+        <div className="flex items-center gap-4 sm:gap-5">
+          <AnimatedIcon
+            name="search"
+            size="sm"
+            strokeColor="#57534e"
+            onClick={() => { setShowSearch(true); navigate('/collection') }}
+          />
 
-      <div className='flex items-center gap-6'>
-            <img onClick={()=> { setShowSearch(true); navigate('/collection') }} src={assets.search_icon} className='w-5 cursor-pointer' alt="" />
-            
-            <div className='group relative'>
-                <img onClick={()=> token ? null : navigate('/login') } className='w-5 cursor-pointer' src={assets.profile_icon} alt="" />
-                {/* Dropdown Menu */}
-                {token && 
-                <div className='group-hover:block hidden absolute dropdown-menu right-0 pt-4'>
-                    <div className='flex flex-col gap-2 w-36 py-3 px-5  bg-slate-100 text-gray-500 rounded'>
-                        <p onClick={()=>navigate('/profile')} className='cursor-pointer hover:text-black'>My Profile</p>
-                        <p onClick={()=>navigate('/orders')} className='cursor-pointer hover:text-black'>Orders</p>
-                        <p onClick={logout} className='cursor-pointer hover:text-black'>Logout</p>
-                    </div>
-                </div>}
-            </div> 
-            <Link to='/cart' className='relative'>
-                <img src={assets.cart_icon} className='w-5 min-w-5' alt="" />
-                <p className='absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px]'>{getCartCount()}</p>
-            </Link> 
-            <img onClick={()=>setVisible(true)} src={assets.menu_icon} className='w-5 cursor-pointer sm:hidden' alt="" /> 
+          <div className="group relative">
+            <AnimatedIcon
+              name="profile"
+              size="sm"
+              strokeColor="#57534e"
+              onClick={() => { if (!token) navigate('/login') }}
+            />
+            {token && (
+              <div className="absolute right-0 top-full z-50 hidden pt-3 group-hover:block">
+                <div className="min-w-[10rem] rounded-xl border border-brand-100 bg-white p-2 shadow-card">
+                  {[
+                    { label: 'Profile', path: '/profile' },
+                    { label: 'Wishlist', path: '/wishlist' },
+                    { label: 'Orders', path: '/orders' },
+                  ].map((item) => (
+                    <button
+                      key={item.path}
+                      type="button"
+                      onClick={() => navigate(item.path)}
+                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-brand-600 hover:bg-brand-50 hover:text-brand-900"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Link to="/wishlist" className="relative hidden sm:flex" title="Wishlist">
+            <WishlistIcon active={wishlist.length > 0} size="sm" as="span" />
+          </Link>
+
+          <Link to="/cart" className="relative flex items-center">
+            <AnimatedIcon name="cart" size="sm" strokeColor="#57534e" />
+            {getCartCount() > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white">
+                {getCartCount()}
+              </span>
+            )}
+          </Link>
+
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-brand-100 sm:hidden"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+          >
+            <AnimatedIcon
+              name="menu"
+              size="sm"
+              reverse={menuOpen}
+              strokeColor="#57534e"
+            />
+          </button>
+        </div>
       </div>
 
-        {/* Sidebar menu for small screens */}
-        <div className={`absolute top-0 right-0 bottom-0 overflow-hidden bg-white transition-all ${visible ? 'w-full' : 'w-0'}`}>
-                <div className='flex flex-col text-gray-600'>
-                    <div onClick={()=>setVisible(false)} className='flex items-center gap-4 p-3 cursor-pointer'>
-                        <img className='h-4 rotate-180' src={assets.dropdown_icon} alt="" />
-                        <p>Back</p>
-                    </div>
-                    <NavLink onClick={()=>setVisible(false)} className='py-2 pl-6 border' to='/'>HOME</NavLink>
-                    <NavLink onClick={()=>setVisible(false)} className='py-2 pl-6 border' to='/collection'>COLLECTION</NavLink>
-                    <NavLink onClick={()=>setVisible(false)} className='py-2 pl-6 border' to='/about'>ABOUT</NavLink>
-                    <NavLink onClick={()=>setVisible(false)} className='py-2 pl-6 border' to='/contact'>CONTACT</NavLink>
-                </div>
-        </div>
-
-    </div>
+      <MobileMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        links={mobileLinks}
+      />
+    </>
   )
 }
 

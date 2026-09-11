@@ -8,9 +8,12 @@ const productSchema = new mongoose.Schema({
     category: { type: String, required: true },
     subCategory: { type: String, required: true },
     sizes: { type: Array, required: true },
+    stock: { type: Object, default: {} },
     bestseller: { type: Boolean },
+    ratingAvg: { type: Number, default: 0 },
+    ratingCount: { type: Number, default: 0 },
     date: { type: Number, required: true }
-})
+}, { minimize: false })
 
 productSchema.index({ category: 1, price: 1 })
 productSchema.index({ bestseller: 1 })

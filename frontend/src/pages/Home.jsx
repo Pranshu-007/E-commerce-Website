@@ -1,4 +1,3 @@
-import React from 'react'
 import Hero from '../components/Hero'
 import LatestCollection from '../components/LatestCollection'
 import BestSeller from '../components/BestSeller'
@@ -7,12 +6,14 @@ import NewsletterBox from '../components/NewsletterBox'
 
 const Home = () => {
   return (
-    <div>
+    <div className="-mt-2">
       <Hero />
-      <LatestCollection/>
-      <BestSeller/>
-      <OurPolicy/>
-      <NewsletterBox/>
+      <LatestCollection />
+      <BestSeller />
+      <OurPolicy />
+      <div className="section-padding pt-0">
+        <NewsletterBox />
+      </div>
     </div>
   )
 }

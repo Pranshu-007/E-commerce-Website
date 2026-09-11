@@ -10,7 +10,17 @@ export const globalLimiter = rateLimit({
   max: maxRequests,
   standardHeaders: true,
   legacyHeaders: false,
+  statusCode: 429,
   message: { success: false, message: 'Too many requests. Please try again later.' },
+  skip: (req) => {
+    const path = req.path || '';
+    return (
+      path === '/live' ||
+      path === '/health' ||
+      path === '/ready' ||
+      path === '/api/order/stripe-webhook'
+    );
+  },
 });
 
 export const authLimiter = rateLimit({
@@ -18,6 +28,7 @@ export const authLimiter = rateLimit({
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
+  statusCode: 429,
   message: { success: false, message: 'Too many login attempts. Try again in 15 minutes.' },
 });
 
@@ -26,6 +37,7 @@ export const checkoutLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  statusCode: 429,
   message: { success: false, message: 'Too many checkout requests. Please slow down.' },
 });
 

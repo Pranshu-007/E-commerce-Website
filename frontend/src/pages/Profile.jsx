@@ -3,6 +3,7 @@ import { ShopContext } from '../context/ShopContext'
 import Title from '../components/Title'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { apiErrorMessage } from '../utils/apiError'
 
 const emptyAddress = {
   firstName: '',
@@ -47,7 +48,7 @@ const Profile = () => {
       }
     } catch (error) {
       console.log(error)
-      toast.error('Failed to load profile')
+      toast.error(apiErrorMessage(error))
     } finally {
       setLoading(false)
     }
@@ -91,7 +92,7 @@ const Profile = () => {
       }
     } catch (error) {
       console.log(error)
-      toast.error('Failed to update profile')
+      toast.error(apiErrorMessage(error))
     } finally {
       setSaving(false)
     }
@@ -120,7 +121,7 @@ const Profile = () => {
       }
     } catch (error) {
       console.log(error)
-      toast.error('Failed to change password')
+      toast.error(apiErrorMessage(error))
     }
   }
 

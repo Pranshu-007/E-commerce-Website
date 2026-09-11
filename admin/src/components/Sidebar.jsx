@@ -1,31 +1,33 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { assets } from '../assets/assets'
+import AnimatedIcon from './AnimatedIcon'
 
-const Sidebar = () => {
-  return (
-    <div className='w-[18%] min-h-screen border-r-2'>
-        <div className='flex flex-col gap-4 pt-6 pl-[20%] text-[15px]'>
+const links = [
+  { to: '/dashboard', icon: 'home', label: 'Dashboard' },
+  { to: '/add', icon: 'add', label: 'Add Product' },
+  { to: '/list', icon: 'list', label: 'Products' },
+  { to: '/orders', icon: 'orders', label: 'Orders' },
+  { to: '/inventory', icon: 'inventory', label: 'Inventory' },
+  { to: '/coupons', icon: 'settings', label: 'Coupons' },
+  { to: '/reviews', icon: 'star', label: 'Reviews' },
+  { to: '/subscribers', icon: 'mail', label: 'Newsletter' },
+  { to: '/customers', icon: 'customers', label: 'Customers' },
+]
 
-            <NavLink className='flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-l' to="/add">
-                <img className='w-5 h-5' src={assets.add_icon} alt="" />
-                <p className='hidden md:block'>Add Items</p>
-            </NavLink>
-
-            <NavLink className='flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-l' to="/list">
-                <img className='w-5 h-5' src={assets.order_icon} alt="" />
-                <p className='hidden md:block'>List Items</p>
-            </NavLink>
-
-            <NavLink className='flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-l' to="/orders">
-                <img className='w-5 h-5' src={assets.order_icon} alt="" />
-                <p className='hidden md:block'>Orders</p>
-            </NavLink>
-
-        </div>
-
-    </div>
-  )
-}
+const Sidebar = () => (
+  <aside className="w-56 min-h-[calc(100vh-73px)] shrink-0 border-r border-slate-200 bg-slate-50/80">
+    <nav className="flex flex-col gap-1 p-4">
+      {links.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+        >
+          <AnimatedIcon name={link.icon} size="sm" strokeColor="#475569" />
+          <span>{link.label}</span>
+        </NavLink>
+      ))}
+    </nav>
+  </aside>
+)
 
 export default Sidebar

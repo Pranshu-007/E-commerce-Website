@@ -192,8 +192,9 @@ Docker healthchecks use `/live` for API containers and `/health` for nginx. Mong
 
 **Example:**
 ```bash
-curl http://localhost:8080/status
-curl http://localhost:8080/metrics
+curl http://localhost:8080/health
+curl -H "x-ops-token: $METRICS_TOKEN" http://localhost:8080/status
+curl -H "x-ops-token: $METRICS_TOKEN" http://localhost:8080/metrics
 ```
 
 **Files:** `backend/routes/healthRoute.js`, `backend/services/metrics.js`, `backend/middleware/metricsMiddleware.js`
@@ -247,8 +248,8 @@ E-Commerce Web Application/
 GET    /live                         # Liveness probe
 GET    /health                       # Health + dependencies
 GET    /ready                        # Readiness probe
-GET    /status                       # Full status dashboard (JSON)
-GET    /metrics                      # Prometheus metrics (?format=json)
+GET    /status                       # Full status dashboard (requires x-ops-token)
+GET    /metrics                      # Prometheus metrics (requires x-ops-token)
 
 # Products (paginated)
 GET    /api/product/list?page=1&limit=12&category=Men&sort=low-high&search=shoes
@@ -272,6 +273,7 @@ POST   /api/order/stripe
 POST   /api/order/razorpay
 POST   /api/order/verifyStripe
 POST   /api/order/verifyRazorpay
+POST   /api/order/stripe-webhook     # Stripe signature-verified webhook
 POST   /api/order/userorders
 POST   /api/order/list           (admin)
 POST   /api/order/status         (admin)
@@ -333,7 +335,7 @@ Admin panel runs at `http://localhost:5174`
 
 ## Docker Setup (Load Balancing + Redis)
 
-Runs MongoDB, Redis, two API replicas, and nginx in one command.
+Runs MongoDB, Redis, two API replicas, and nginx in one command. Copy `.env.example` to `.env` at the project root and set strong `JWT_SECRET` and `ADMIN_PASSWORD` first.
 
 ```bash
 # From project root
@@ -363,8 +365,12 @@ docker compose up --build
 PORT=4000
 MONGODB_URI=mongodb://localhost:27017/ecommerce
 JWT_SECRET=your_long_random_secret
+JWT_EXPIRES_IN=7d
+JWT_EXPIRES_ADMIN=8h
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=your_admin_password
+CORS_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:8080
+METRICS_TOKEN=your_ops_token
 
 REDIS_URL=redis://localhost:6379
 CACHE_TTL_SECONDS=60
@@ -376,6 +382,7 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_SECRET_KEY=your_secret_key
 
 STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 RAZORPAY_KEY_ID=rzp_test_...
 RAZORPAY_KEY_SECRET=...
 ```
@@ -397,13 +404,15 @@ VITE_BACKEND_URL=
 ## Security Checklist
 
 - Passwords hashed with bcrypt
-- JWT tokens for protected routes
-- Admin routes require admin authentication
+- JWT tokens expire (7d users, 8h admin); admin tokens never include the password
+- Admin routes require `{ role: "admin" }` JWTs
 - Rate limiting on auth and checkout endpoints
-- Helmet security headers enabled
-- Stripe webhook signature verification
-- Prices calculated server-side — never trust the browser
+- Helmet security headers and origin-restricted CORS
+- `/status` and `/metrics` require `x-ops-token` (hidden if `METRICS_TOKEN` is unset)
+- Stripe webhook signature verification; checkout amounts come from MongoDB prices
+- Razorpay payments verified with HMAC signatures
 - Never commit `.env` files or real API keys
+- Docker Compose binds MongoDB/Redis to localhost only and requires real `JWT_SECRET` / `ADMIN_PASSWORD`
 
 ---
 

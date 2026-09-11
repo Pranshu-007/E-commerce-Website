@@ -2,6 +2,7 @@ import axios from 'axios'
 import React, { useState } from 'react'
 import { backendUrl } from '../App'
 import { toast } from 'react-toastify'
+import { apiErrorMessage } from '../utils/apiError'
 
 const Login = ({setToken}) => {
 
@@ -20,7 +21,7 @@ const Login = ({setToken}) => {
              
         } catch (error) {
             console.log(error);
-            toast.error(error.message)
+            toast.error(apiErrorMessage(error))
         }
     }
 
@@ -31,11 +32,11 @@ const Login = ({setToken}) => {
             <form onSubmit={onSubmitHandler}>
                 <div className='mb-3 min-w-72'>
                     <p className='text-sm font-medium text-gray-700 mb-2'>Email Address</p>
-                    <input onChange={(e)=>setEmail(e.target.value)} value={email} className='rounded-md w-full px-3 py-2 border border-gray-300 outline-none' type="email" placeholder='your@email.com' required />
+                    <input onChange={(e)=>setEmail(e.target.value)} value={email} className='admin-input' type="email" placeholder='admin@forever.com' required />
                 </div>
                 <div className='mb-3 min-w-72'>
                     <p className='text-sm font-medium text-gray-700 mb-2'>Password</p>
-                    <input onChange={(e)=>setPassword(e.target.value)} value={password} className='rounded-md w-full px-3 py-2 border border-gray-300 outline-none' type="password" placeholder='Enter your password' required />
+                    <input onChange={(e)=>setPassword(e.target.value)} value={password} className='admin-input' type="password" placeholder='Enter admin password' required />
                 </div>
                 <button className='mt-2 w-full py-2 px-4 rounded-md text-white bg-black' type="submit"> Login </button>
             </form>

@@ -1,8 +1,11 @@
 import { v2 as cloudinary } from "cloudinary"
 import productModel from "../models/productModel.js"
 import * as cache from "../services/cache.js"
+import { getUseFakeStoreCatalog } from "../services/catalogSettings.js"
+import { getFakeProductById, listFakeProducts } from "../services/fakeStore.js"
+import { fail, ok } from "../utils/http.js"
 
-const LIST_PROJECTION = "name price image category subCategory bestseller date"
+const LIST_PROJECTION = "name price image category subCategory bestseller date stock ratingAvg ratingCount"
 const MAX_LIMIT = 50
 
 function buildListCacheKey(query) {
@@ -59,9 +62,26 @@ function buildSort(sort) {
       return { price: 1 }
     case "high-low":
       return { price: -1 }
+    case "top-rated":
+      return { ratingAvg: -1, ratingCount: -1 }
     default:
       return { date: -1 }
   }
+}
+
+function parseStock(sizes, rawStock) {
+    const stock = {}
+    let parsed = {}
+    try {
+        parsed = typeof rawStock === 'string' ? JSON.parse(rawStock || '{}') : (rawStock || {})
+    } catch {
+        parsed = {}
+    }
+    for (const size of sizes) {
+        const n = Number(parsed[size])
+        stock[size] = Number.isFinite(n) && n >= 0 ? n : 0
+    }
+    return stock
 }
 
 const addProduct = async (req, res) => {
@@ -69,12 +89,22 @@ const addProduct = async (req, res) => {
 
         const { name, description, price, category, subCategory, sizes, bestseller } = req.body
 
-        const image1 = req.files.image1 && req.files.image1[0]
-        const image2 = req.files.image2 && req.files.image2[0]
-        const image3 = req.files.image3 && req.files.image3[0]
-        const image4 = req.files.image4 && req.files.image4[0]
+        const image1 = req.files?.image1?.[0]
+        const image2 = req.files?.image2?.[0]
+        const image3 = req.files?.image3?.[0]
+        const image4 = req.files?.image4?.[0]
 
         const images = [image1, image2, image3, image4].filter((item) => item !== undefined)
+
+        if (!name || !description || !price || !category || !subCategory || !sizes) {
+            return fail(res, 400, "Missing product fields")
+        }
+        if (images.length === 0) {
+            return fail(res, 400, "At least one product image is required")
+        }
+        if (Number.isNaN(Number(price)) || Number(price) <= 0) {
+            return fail(res, 400, "Invalid product price")
+        }
 
         let imagesUrl = await Promise.all(
             images.map(async (item) => {
@@ -91,6 +121,7 @@ const addProduct = async (req, res) => {
             subCategory,
             bestseller: bestseller === "true" ? true : false,
             sizes: JSON.parse(sizes),
+            stock: parseStock(JSON.parse(sizes), req.body.stock),
             image: imagesUrl,
             date: Date.now()
         }
@@ -99,17 +130,38 @@ const addProduct = async (req, res) => {
         await product.save()
         await cache.invalidateProductCache()
 
-        res.json({ success: true, message: "Product Added" })
+        return ok(res, { message: "Product Added" }, 201)
 
     } catch (error) {
         console.log(error)
-        res.json({ success: false, message: error.message })
+        return fail(res, 500, error.message)
     }
 }
 
 const listProducts = async (req, res) => {
     try {
         const query = parseListQuery(req)
+        const forceLocal = req.query.catalog === 'local'
+        const useFakeStore = !forceLocal && await getUseFakeStoreCatalog()
+
+        if (useFakeStore) {
+            const result = await listFakeProducts(query)
+            return res.json({
+                success: true,
+                products: result.products,
+                pagination: {
+                    page: result.page,
+                    limit: result.limit,
+                    total: result.total,
+                    totalPages: result.totalPages,
+                    hasNext: result.hasNext,
+                    hasPrev: result.hasPrev,
+                },
+                catalogSource: 'fakestore',
+                demoCatalog: true,
+            })
+        }
+
         const cacheKey = buildListCacheKey(query)
         const cached = await cache.get(cacheKey)
 
@@ -159,35 +211,102 @@ const listProducts = async (req, res) => {
                 hasNext: query.page < totalPages,
                 hasPrev: query.page > 1,
             },
+            catalogSource: 'local',
+            demoCatalog: false,
         }
 
         await cache.set(cacheKey, payload, 60)
         res.set('X-Cache', 'MISS')
         res.set('Cache-Control', 'public, max-age=60')
-        res.json(payload)
+        return res.json(payload)
 
     } catch (error) {
         console.log(error)
-        res.json({ success: false, message: error.message })
+        return fail(res, 500, error.message)
     }
 }
 
 const removeProduct = async (req, res) => {
     try {
-        
-        await productModel.findByIdAndDelete(req.body.id)
-        await cache.invalidateProductCache()
-        res.json({success:true,message:"Product Removed"})
+        if (!req.body.id) {
+            return fail(res, 400, "Product id is required")
+        }
 
+        const deleted = await productModel.findByIdAndDelete(req.body.id)
+        if (!deleted) {
+            return fail(res, 404, "Product not found")
+        }
+
+        await cache.invalidateProductCache()
+        return ok(res, { message: "Product Removed" })
     } catch (error) {
         console.log(error)
-        res.json({ success: false, message: error.message })
+        return fail(res, 500, error.message)
+    }
+}
+
+const updateProduct = async (req, res) => {
+    try {
+        const { id, name, description, price, category, subCategory, sizes, bestseller } = req.body
+        if (!id) return fail(res, 400, "Product id is required")
+
+        const product = await productModel.findById(id)
+        if (!product) return fail(res, 404, "Product not found")
+
+        const parsedSizes = sizes ? JSON.parse(sizes) : product.sizes
+        const image1 = req.files?.image1?.[0]
+        const image2 = req.files?.image2?.[0]
+        const image3 = req.files?.image3?.[0]
+        const image4 = req.files?.image4?.[0]
+        const newFiles = [image1, image2, image3, image4].filter(Boolean)
+
+        let image = product.image
+        if (newFiles.length > 0) {
+            const uploaded = await Promise.all(
+                newFiles.map(async (item) => {
+                    const result = await cloudinary.uploader.upload(item.path, { resource_type: 'image' })
+                    return result.secure_url
+                })
+            )
+            image = uploaded
+        }
+
+        product.name = name || product.name
+        product.description = description || product.description
+        product.price = price ? Number(price) : product.price
+        product.category = category || product.category
+        product.subCategory = subCategory || product.subCategory
+        product.sizes = parsedSizes
+        product.bestseller = String(bestseller) === 'true'
+        product.stock = parseStock(parsedSizes, req.body.stock)
+        product.image = image
+        await product.save()
+        await cache.invalidateProductCache()
+        return ok(res, { message: "Product Updated", product })
+    } catch (error) {
+        console.log(error)
+        return fail(res, 500, error.message)
     }
 }
 
 const singleProduct = async (req, res) => {
     try {
         const { productId } = req.body
+        if (!productId) {
+            return fail(res, 400, "Product id is required")
+        }
+
+        const forceLocal = req.query.catalog === 'local'
+        const useFakeStore = !forceLocal && await getUseFakeStoreCatalog()
+
+        if (useFakeStore) {
+            const product = await getFakeProductById(productId)
+            if (!product) {
+                return fail(res, 404, "Product not found")
+            }
+            return ok(res, { product, catalogSource: 'fakestore', demoCatalog: true })
+        }
+
         const cacheKey = `products:single:${productId}`
         const cached = await cache.get(cacheKey)
         if (cached) {
@@ -197,16 +316,20 @@ const singleProduct = async (req, res) => {
         }
 
         const product = await productModel.findById(productId).lean()
-        const payload = { success: true, product }
+        if (!product) {
+            return fail(res, 404, "Product not found")
+        }
+
+        const payload = { success: true, product, catalogSource: 'local', demoCatalog: false }
         await cache.set(cacheKey, payload, 120)
         res.set('X-Cache', 'MISS')
         res.set('Cache-Control', 'public, max-age=120')
-        res.json(payload)
+        return res.json(payload)
 
     } catch (error) {
         console.log(error)
-        res.json({ success: false, message: error.message })
+        return fail(res, 500, error.message)
     }
 }
 
-export { listProducts, addProduct, removeProduct, singleProduct }
+export { listProducts, addProduct, removeProduct, singleProduct, updateProduct }

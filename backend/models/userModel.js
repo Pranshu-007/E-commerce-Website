@@ -14,7 +14,10 @@ const userSchema = new mongoose.Schema({
         zipcode: { type: String, default: '' },
         country: { type: String, default: '' },
     },
-    cartData: { type: Object, default: {} }
+    cartData: { type: Object, default: {} },
+    wishlist: { type: [String], default: [] },
+    resetPasswordToken: { type: String, default: '' },
+    resetPasswordExpires: { type: Number, default: 0 },
 }, { minimize: false })
 
 const userModel = mongoose.models.user || mongoose.model('user',userSchema);

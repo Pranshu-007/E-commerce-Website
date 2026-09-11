@@ -1,30 +1,212 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Prata&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300..700&family=Prata&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-a.active hr{
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-brand-50 text-brand-900 antialiased;
+  }
+
+  * {
+    font-family: Outfit, system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: Prata, Georgia, serif;
+  }
+
+  .page-container {
+    @apply mx-auto w-full max-w-site px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-14 sm:py-20;
+  }
+
+  .eyebrow {
+    @apply text-[11px] uppercase tracking-[0.22em] text-brand-500 font-medium;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-900 px-7 py-3 text-sm font-medium tracking-wide text-white transition-all duration-300 hover:bg-brand-800 hover:shadow-soft active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-brand-300 bg-white px-7 py-3 text-sm font-medium tracking-wide text-brand-800 transition-all duration-300 hover:border-brand-900 hover:bg-brand-900 hover:text-white active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-brand-200 bg-white px-4 py-3 text-sm text-brand-900 outline-none transition-all placeholder:text-brand-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-200;
+  }
+
+  .select-field {
+    @apply rounded-xl border border-brand-200 bg-white px-4 py-2.5 text-sm text-brand-800 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-200;
+  }
+
+  .card {
+    @apply rounded-2xl border border-brand-100 bg-white shadow-soft;
+  }
+
+  .card-elevated {
+    @apply rounded-2xl border border-brand-100 bg-white shadow-card;
+  }
+
+  .filter-panel {
+    @apply rounded-2xl border border-brand-200 bg-white p-5 shadow-soft;
+  }
+
+  .nav-link {
+    @apply relative text-sm font-medium tracking-wide text-brand-600 transition-colors hover:text-brand-900;
+  }
+
+  .nav-link.active {
+    @apply text-brand-900;
+  }
+
+  .nav-link.active::after {
+    content: '';
+    @apply absolute -bottom-1 left-0 h-0.5 w-full rounded-full bg-brand-900;
+  }
+
+  .size-pill {
+    @apply min-w-[3rem] rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-medium text-brand-700 transition-all hover:border-brand-500;
+  }
+
+  .size-pill.selected {
+    @apply border-brand-900 bg-brand-900 text-white;
+  }
+
+  .size-pill:disabled {
+    @apply cursor-not-allowed opacity-40;
+  }
+
+  .divider-fade {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-brand-200 to-transparent;
+  }
+
+  .product-card {
+    @apply flex h-full flex-col;
+  }
+
+  .product-card__media {
+    @apply relative overflow-hidden rounded-2xl bg-brand-100;
+  }
+
+  .product-card__image-link {
+    @apply relative block aspect-[3/4] overflow-hidden;
+  }
+
+  .product-card__image {
+    @apply absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out;
+  }
+
+  .product-card__image--alt {
+    @apply opacity-0 scale-105;
+  }
+
+  .product-card__image--hidden {
+    @apply opacity-0 scale-100;
+  }
+
+  .product-card__image--visible {
+    @apply opacity-100 scale-100;
+  }
+
+  .group:hover .product-card__image:not(.product-card__image--alt):not(.product-card__image--hidden) {
+    @apply scale-[1.04];
+  }
+
+  .product-card__overlay {
+    @apply pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-brand-900/55 via-brand-900/10 to-transparent p-4 opacity-0 transition-opacity duration-500 group-hover:opacity-100;
+  }
+
+  .product-card__cta {
+    @apply inline-flex translate-y-2 items-center gap-1.5 rounded-full bg-white/95 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.16em] text-brand-900 shadow-soft backdrop-blur-sm transition-transform duration-500 group-hover:translate-y-0;
+  }
+
+  .product-card__badges {
+    @apply absolute left-3 top-3 z-10 flex flex-wrap gap-1.5;
+  }
+
+  .product-card__badge {
+    @apply rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-brand-700 shadow-soft backdrop-blur-sm;
+  }
+
+  .product-card__badge--accent {
+    @apply bg-accent text-white;
+  }
+
+  .product-card__wishlist {
+    @apply absolute right-3 top-3 z-10 opacity-100 transition-all duration-300 sm:opacity-0 sm:group-hover:opacity-100;
+  }
+
+  .product-card__body {
+    @apply flex flex-1 flex-col px-1 pt-4 transition-colors;
+  }
+
+  .product-card__category {
+    @apply text-[10px] uppercase tracking-[0.18em] text-brand-500;
+  }
+
+  .product-card__title {
+    @apply mt-1 font-display text-base leading-snug text-brand-900 line-clamp-2 transition-colors group-hover:text-accent;
+  }
+
+  .product-card__rating {
+    @apply mt-2 flex items-center gap-1 text-xs text-brand-600;
+  }
+
+  .product-card__rating-count {
+    @apply text-brand-400;
+  }
+
+  .product-card__footer {
+    @apply mt-auto pt-3;
+  }
+
+  .product-card__price {
+    @apply flex items-baseline gap-2;
+  }
+
+  .product-card__price-value {
+    @apply text-sm font-semibold tracking-wide text-brand-900;
+  }
+}
+
+/* Nav active state for desktop */
+@media (min-width: 640px) {
+  a.active hr {
     display: block;
+  }
 }
 
-*{
-    font-family: Outfit;
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.prata-regular {
-    font-family: "Prata", serif;
-    font-weight: 400;
-    font-style: normal;
-  }
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-brand-300;
+}
 
-  ::-webkit-scrollbar{
-    display: none;
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+@media (max-width: 640px) {
+  a.active {
+    @apply bg-brand-900 text-white;
   }
-  
-  @media (max-width:640px) {
-    a.active{
-        background-color: black;
-        color: white;
-    }
-  }
+}

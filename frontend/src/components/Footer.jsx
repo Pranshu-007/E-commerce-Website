@@ -1,43 +1,45 @@
+import { Link } from 'react-router-dom'
 import { assets } from '../assets/assets'
 
 const Footer = () => {
   return (
-    <div>
-      <div className='flex flex-col sm:grid grid-cols-[3fr_1fr_1fr] gap-14 my-10 mt-40 text-sm'>
-
-        <div>
-            <img src={assets.logo} className='mb-5 w-32' alt="" />
-            <p className='w-full md:w-2/3 text-gray-600'>
-            Discover timeless fashion and enduring style at Forever. Our curated collection of clothing and accessories is designed to elevate your wardrobe and make you feel confident.
+    <footer className="mt-16 bg-brand-900 text-brand-300">
+      <div className="page-container section-padding">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="lg:col-span-2">
+            <img src={assets.logo} className="mb-5 h-8 brightness-0 invert" alt="Forever" />
+            <p className="max-w-md text-sm leading-relaxed text-brand-400">
+              Discover timeless fashion at Forever. Curated clothing and accessories designed to elevate your wardrobe and help you feel confident every day.
             </p>
-        </div>
+          </div>
 
-        <div>
-            <p className='text-xl font-medium mb-5'>COMPANY</p>
-            <ul className='flex flex-col gap-1 text-gray-600'>
-                <li>Home</li>
-                <li>About us</li>
-                <li>Delivery</li>
-                <li>Privacy policy</li>
+          <div>
+            <p className="eyebrow mb-4 text-brand-400">Company</p>
+            <ul className="flex flex-col gap-2.5 text-sm">
+              <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
+              <li><Link to="/about" className="hover:text-white transition-colors">About us</Link></li>
+              <li><Link to="/collection" className="hover:text-white transition-colors">Shop</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
             </ul>
-        </div>
+          </div>
 
-        <div>
-            <p className='text-xl font-medium mb-5'>GET IN TOUCH</p>
-            <ul className='flex flex-col gap-1 text-gray-600'>
-                <li>+91 1234567890</li>
-                <li>contact@foreveryou.com</li>
+          <div>
+            <p className="eyebrow mb-4 text-brand-400">Get in touch</p>
+            <ul className="flex flex-col gap-2.5 text-sm">
+              <li>+91 1234567890</li>
+              <li>contact@foreveryou.com</li>
+              <li className="text-brand-400">Mon – Sat, 9am – 6pm IST</li>
             </ul>
+          </div>
         </div>
 
+        <div className="divider-fade my-10 opacity-30" />
+
+        <p className="text-center text-xs text-brand-500">
+          © {new Date().getFullYear()} forever.com — All rights reserved.
+        </p>
       </div>
-
-        <div>
-            <hr />
-            <p className='py-5 text-sm text-center'>Copyright 2024@ forever.com - All Right Reserved by Pranshu Shukla</p>
-        </div>
-
-    </div>
+    </footer>
   )
 }
 
